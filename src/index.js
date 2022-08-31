@@ -5,13 +5,17 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const jwt = require("jsonwebtoken");
-const randtoken = require("rand-token");
 const env = require("./env-load");
-const session = require("express-session");
 const passport = require("passport");
 const JwtStrategy = require("passport-jwt").Strategy;
-//const GoogleStrategy = require("passport-google-oauth2").Strategy;
-const ExtractJwt = require("passport-jwt").ExtractJwt;
+const mongoose = require("mongoose");
+const formatResponse = require("./utils/formatResponse")
+const authRoutes = require("./routes/auth.routes")
+
+//Connect to mongoDb using mongoose
+mongoose.connect( env.DATABASE, { useNewUrlParser: true } )
+  .then( () => console.log('DB Connected') )
+  .catch( (err) => console.log(formatResponse('Error while connecting to DB', {}, err)))
 
 // defining the Express app
 const app = express();
@@ -23,7 +27,7 @@ app.use(helmet());
 app.use(bodyParser.json());
 
 // Parse Cookie header and populate req.cookies
-app.use(cookieParser())
+app.use(cookieParser());
 
 // enabling CORS for all requests
 app.use(cors());
@@ -34,55 +38,41 @@ app.use(morgan("combined"));
 // Initialize Passeport
 app.use(passport.initialize());
 
+//Authentication route
+app.use("/api/v1/", authRoutes);
+
 // starting the server
 app.listen(env.PORT, () => {
-    console.log(`listening on port ${env.PORT}`);
+  console.log(`listening on port ${env.PORT}`);
 });
 
 // hello word route
 app.get("/", (req, res) => {
-    res.send("hello world");
+  res.send("hello world");
 });
 
 // Extract jwt token from cookies
 const cookieExtractor = (req) => {
-    let jwt = null;
-    console.log(req.cookies)
-    if (req && req.cookies) jwt = req.cookies["jwt"]; //what if no jwt key ?
-    return jwt;
+  let jwt = null;
+  console.log(req.cookies);
+  if (req && req.cookies) jwt = req.cookies["jwt"]; //what if no jwt key ?
+  return jwt;
 };
 
 // Setup JWT options
 var opts = {
-    //get jwt from cookie
-    jwtFromRequest: cookieExtractor,
-    //secretkey
-    secretOrKey: env.SECRET,
-    //
+  jwtFromRequest: cookieExtractor,
+  secretOrKey: env.SECRET,
 };
 
 // Passport Jwt Strategy
 passport.use(
-    new JwtStrategy(opts, (jwtPayload, done) => {
+  new JwtStrategy(opts, (jwtPayload, done) => {
     // If the token has expiration, raise unauthorized
-    if (Date.now() > jwtPayload.expiration)
-      return done("Expired token", false);
+    if (Date.now() > jwtPayload.expiration) return done("Expired token", false);
     done(null, jwtPayload);
   })
 );
-
-// Passport Google Strategy
-/* passport.use(
-  new GoogleStrategy(
-    {
-      clientID: GOOGLE_CLIENT_ID,
-      clientSecret: GOOGLE_CLIENT_SECRET,
-      callbackURL: "http://localhost:3001/auth/google/callback",
-      passReqToCallback: true,
-    },
-    authUser
-  )
-); */
 
 //define REST proxy options based on logged in user
 passport.serializeUser(function (user, done) {
@@ -92,7 +82,7 @@ passport.serializeUser(function (user, done) {
 passport.deserializeUser(function (obj, done) {
   done(null, obj);
 });
-
+/* 
 // Login middleware
 const login = (req, res, next) => {
   try {
@@ -135,7 +125,7 @@ app.post("/login", login, async (req, res) => {
   }
 
   const date = new Date();
-  date.setDate(date.getDate() + 60)
+  date.setDate(date.getDate() + 60);
 
   const payload = {
     username: user.username,
@@ -178,3 +168,4 @@ app.get("/logout", (req, res) => {
     });
   }
 });
+ */
