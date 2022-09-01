@@ -4,7 +4,6 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
-const jwt = require("jsonwebtoken");
 const env = require("./env-load");
 const passport = require("passport");
 const JwtStrategy = require("passport-jwt").Strategy;
@@ -62,7 +61,7 @@ const cookieExtractor = (req) => {
 // Setup JWT options
 var opts = {
   jwtFromRequest: cookieExtractor,
-  secretOrKey: env.SECRET,
+  secretOrKey: env.JWT_SECRET,
 };
 
 // Passport Jwt Strategy
@@ -82,68 +81,6 @@ passport.serializeUser(function (user, done) {
 passport.deserializeUser(function (obj, done) {
   done(null, obj);
 });
-/* 
-// Login middleware
-const login = (req, res, next) => {
-  try {
-    const { username, password } = req.body;
-
-    let user = {
-      username,
-      password,
-    };
-
-    if (username === "amine") {
-      if (password === "amine") {
-        res.locals.user = user;
-        next();
-      } else {
-        res.status(400).json({
-          error: "Incorrect username or password",
-        });
-      }
-    } else {
-      res.status(400).json({
-        error: "Incorrect username or password",
-      });
-    }
-  } catch (error) {
-    res.status(500).json({ error });
-  }
-};
-
-// Login Route
-app.post("/login", login, async (req, res) => {
-  let user;
-
-  if (res.locals.user) {
-    user = res.locals.user;
-  } else {
-    res.status(400).json({
-      error: "user not found",
-    });
-  }
-
-  const date = new Date();
-  date.setDate(date.getDate() + 60);
-
-  const payload = {
-    username: user.username,
-    expiration: date,
-  };
-
-  const token = jwt.sign(JSON.stringify(payload), env.SECRET);
-
-  res
-    .cookie("jwt", token, {
-      httpOnly: true,
-      secure: false, //--> SET TO TRUE ON PRODUCTION
-    })
-    .status(200)
-    .json({
-      message: "You have logged in :D",
-    });
-});
 
 // Protected route
 app.get(
@@ -155,17 +92,3 @@ app.get(
     });
   }
 );
-
-// Logout Route
-app.get("/logout", (req, res) => {
-  if (req.cookies["jwt"]) {
-    res.clearCookie("jwt").status(200).json({
-      message: "You have logged out",
-    });
-  } else {
-    res.status(401).json({
-      error: "Invalid jwt",
-    });
-  }
-});
- */
