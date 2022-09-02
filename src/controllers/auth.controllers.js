@@ -3,10 +3,21 @@ const formatResponse = require("../utils/formatResponse");
 const handleDbErrMsg = require("../utils/handleDbErrMsg");
 const User = require("../models/user.models");
 const jwt = require("jsonwebtoken");
+const Joi = require("joi");
 
-exports.register = (req, res) => {
+const schema = Joi.object({
+    email: Joi.string().email().required(),
+    username: Joi.string().alphanum().min(3).required(),
+    password: Joi.string().min(4).required(),
+});
+
+exports.register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const value = await schema.validateAsync({
+        email: req.body.email,
+        username: req.body.username,
+        password: req.body.password,
+    });
     if (!username || !email || !password)
       return res.status(400).json(formatResponse("All fields are required"));
     const newUser = new User({ username, email, password });

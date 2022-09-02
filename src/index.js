@@ -82,12 +82,12 @@ passport.deserializeUser(function (obj, done) {
   done(null, obj);
 });
 
-// Protected route
+// Protected route testing purpose
 app.get(
   "/protected",
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
-    res.send(200).json({
+    res.status(200).json({
       message: "welcome to the protected route!",
     });
   }
