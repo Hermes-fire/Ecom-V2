@@ -6,35 +6,38 @@ const jwt = require("jsonwebtoken");
 const Joi = require("joi");
 
 const schema = Joi.object({
-    email: Joi.string().email().required(),
-    username: Joi.string().alphanum().min(3).required(),
-    password: Joi.string().min(4).required(),
-});
+    username: Joi.string()
+        .alphanum()
+        .min(3)
+        .max(30)
+        .required(),
+    password: Joi.string()
+        .pattern(new RegExp("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$")),
+    email: Joi.string()
+        .email({ minDomainSegments: 2, tlds: { allow: true } })
+})
 
 exports.register = async (req, res) => {
   try {
-    const value = await schema.validateAsync({
-        email: req.body.email,
-        username: req.body.username,
-        password: req.body.password,
-    });
+    const {username, email, password} = req.body
+    await schema.validateAsync({username, email, password})
     if (!username || !email || !password)
-      return res.status(400).json(formatResponse("All fields are required"));
-    const newUser = new User({ username, email, password });
+      return res.status(400).json(formatResponse("All fields are required"))
+    const newUser = new User({ username, email, password })
     newUser.save((err, user) => {
       if (err)
         return res
           .status(500)
-          .json(formatResponse(handleDbErrMsg(err), {}, err));
+          .json(formatResponse(handleDbErrMsg(err), {}, err))
       user.salt = user.hashed_password = undefined;
       res
         .status(200)
-        .json(formatResponse("Account successfully registered", user));
+        .json(formatResponse("Account successfully registered", user))
     });
   } catch (err) {
     res
       .status(500)
-      .json(formatResponse("Cannot register user at the moment", {}, err));
+      .json(formatResponse(handleDbErrMsg(err), {}, err))
   }
 };
 
