@@ -41,8 +41,6 @@ exports.register = async (req, res) => {
   }
 };
 
-///please validate fields
-
 //Login
 exports.login = (req, res) => {
   try {
