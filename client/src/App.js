@@ -8,23 +8,38 @@ import "./App.css";
 
 function App() {
 
+	const [user, setUser] = useState(null);
+
+	const getUser = async () => {
+		try {
+			const url = `${process.env.REACT_APP_API_URL}/api/v1/protected`;
+			const { data } = await axios.get(url, { withCredentials: true });
+			setUser(data.user);
+		} catch (err) {
+			console.log(err);
+		}
+	};
+
+	useEffect(() => {
+		getUser();
+	}, []);
+
 	return (
 		<div className="container">
 			<Routes>
 				<Route
 					exact
 					path="/"
-					element={<Login />}
+					element={user ? <Home user={user} /> : <Navigate to="/login" />}
 				/>
 				<Route
 					exact
-					path="/bad"
-					element={<h1>bad</h1>}
+					path="/login"
+					element={user ? <Navigate to="/" /> : <Login />}
 				/>
 				<Route
-					exact
-					path="/good"
-					element={<h1>good</h1>}
+					path="/signup"
+					element={user ? <Navigate to="/" /> : <Signup />}
 				/>
 			</Routes>
 		</div>

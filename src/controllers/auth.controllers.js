@@ -6,38 +6,35 @@ const jwt = require("jsonwebtoken");
 const Joi = require("joi");
 
 const schema = Joi.object({
-    username: Joi.string()
-        .alphanum()
-        .min(3)
-        .max(30)
-        .required(),
-    password: Joi.string()
-        .pattern(new RegExp("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$")),
-    email: Joi.string()
-        .email({ minDomainSegments: 2, tlds: { allow: true } })
-})
+  username: Joi.string().alphanum().min(3).max(30).required(),
+  password: Joi.string().pattern(
+    new RegExp("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$")
+  ),
+  email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: true } }),
+});
 
 exports.register = async (req, res) => {
   try {
-    const {username, email, password} = req.body
-    await schema.validateAsync({username, email, password})
+    const { username, email, password } = req.body;
+    await schema.validateAsync({ username, email, password });
     if (!username || !email || !password)
-      return res.status(400).json(formatResponse("All fields are required"))
-    const newUser = new User({ username, email, password })
+      return res.status(400).json(formatResponse("All fields are required"));
+    const newUser = new User({ username, email, password });
     newUser.save((err, user) => {
       if (err)
         return res
           .status(500)
-          .json(formatResponse(handleDbErrMsg(err), {}, err))
+          .json(formatResponse(handleDbErrMsg(err), {}, err));
       user.salt = user.hashed_password = undefined;
       res
         .status(200)
-        .json(formatResponse("Account successfully registered", user))
+        .json(formatResponse("Account successfully registered", user));
     });
   } catch (err) {
-    res
-      .status(500)
-      .json(formatResponse(handleDbErrMsg(err), {}, err))
+    if (err._original) {
+      return res.status(400).json(formatResponse(handleDbErrMsg(err), {}, err));
+    }
+    res.status(500).json(formatResponse(handleDbErrMsg(err), {}, err));
   }
 };
 
@@ -65,10 +62,12 @@ exports.login = (req, res) => {
       }
       user.salt = user.hashed_password = undefined;
       const token = jwt.sign({ _id: user._id }, env.JWT_SECRET, {
-        expiresIn: "60d",
+        expiresIn: "30d",
       });
+      const JWT_MAX_AGE = 1000 * 60 * 60 * 24 * 30
       res
         .cookie("jwt", token, {
+          maxAge: JWT_MAX_AGE,
           httpOnly: true,
           secure: env.SECURE_COOKIE === "true" ? true : false, //--> SET TO TRUE ON PRODUCTION
         })
@@ -95,11 +94,10 @@ exports.logout = (req, res) => {
 
 //isAdmin
 exports.isAdmin = (req, res, next) => {
-    if(req.user.role === 0){
-        return res.status(403).json({
-            error:'Admin ressource! Access denied'
-        })
-    }
-    next()
-}
-
+  if (req.user.role === 0) {
+    return res.status(403).json({
+      error: "Admin ressource! Access denied",
+    });
+  }
+  next();
+};
