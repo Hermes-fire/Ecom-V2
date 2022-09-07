@@ -101,3 +101,31 @@ exports.isAdmin = (req, res, next) => {
   }
   next();
 };
+
+// Google callback
+
+exports.googleAuth = (req, res) => {
+  console.log(req.user)
+  const token = jwt.sign({ _id: req.user._id }, env.JWT_SECRET, {
+    expiresIn: "30d",
+  });
+  const JWT_MAX_AGE = 1000 * 60 * 60 * 24 * 30
+  res
+    .cookie("jwt", token, {
+      maxAge: JWT_MAX_AGE,
+      httpOnly: true,
+      secure: env.SECURE_COOKIE === "true" ? true : false, //--> SET TO TRUE ON PRODUCTION
+    })
+  res.redirect(`${env.CLIENT_URI}/`);
+}
+
+exports.authenticate = (req, res) => {
+  if (req.user) {
+    return res.status(200).json({
+      user: req.user,
+    });
+  }
+  res.status(400).json({
+    message: "Unauthorized",
+  });
+}

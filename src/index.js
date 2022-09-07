@@ -52,11 +52,6 @@ app.listen(env.PORT, () => {
   console.log(`listening on port ${env.PORT}`);
 });
 
-// hello word route
-app.get("/", (req, res) => {
-  res.send("hello world");
-});
-
 // Extract jwt token from cookies
 const cookieExtractor = (req) => {
   let jwt = null;
@@ -82,7 +77,6 @@ passport.use(
   new JwtStrategy(jwtOpts, (jwtPayload, done) => {
     // If the token has expiration, raise unauthorized
     if (Date.now() > jwtPayload.expiration) return done("Expired token", false);
-    console.log(jwtPayload);
     done(null, jwtPayload); //req.????
   })
 );
@@ -100,6 +94,7 @@ passport.use(
     user = users.createUser(profile.displayName, 'google', profile.id);
   } */
       let user = { profilegoogle: profile };
+      console.log('here')
       return done(null, user);
     }
   )
