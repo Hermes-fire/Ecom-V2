@@ -13,7 +13,8 @@ const mongoose = require("mongoose");
 const formatResponse = require("./utils/formatResponse");
 const authRoutes = require("./routes/auth.routes");
 const router = require("./routes/auth.routes");
-const { eventNames } = require("./models/user.models");
+const User = require("./models/user.models");
+const { v4: uuidv4 } = require("uuid");
 
 //Connect to mongoDb using mongoose
 mongoose
@@ -86,16 +87,26 @@ passport.use(
 passport.use(
   new GoogleStrategy(
     googleOpts,
-    (request, accessToken, refreshToken, profile, done) => {
-      // See if this user already exists
-      /* let user = users.getUserByExternalId('google', profile.id);
-  if (!user) {
-    // They don't, so register them
-    user = users.createUser(profile.displayName, 'google', profile.id);
-  } */
-      let user = { profilegoogle: profile };
-      console.log('here')
-      return done(null, user);
+    async (request, accessToken, refreshToken, profile, done) => {
+      if (!profile && !profile._json.email)
+        return  done({err:'something went wrong'})
+      const foundUser = await User.findOne({ email: profile._json.email });
+      if (foundUser) {
+        foundUser.salt = foundUser.hashed_password = undefined;
+        return done(null, foundUser);
+      } else {
+        const newUser = new User({
+          username: profile._json.given_name + "-" + profile._json.family_name, /// remove space also frommusername
+          email: profile._json.email,
+          password: uuidv4() + "@A",
+        });
+        newUser.save((err, savedUser) => {
+          if (err)
+            return done(err)
+          savedUser.salt = savedUser.hashed_password = undefined;
+          return done(null, savedUser)
+        });
+      }
     }
   )
 );

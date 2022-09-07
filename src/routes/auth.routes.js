@@ -22,7 +22,7 @@ router.get(
   authenticate
 );
 
-// Gooogle Login
+// Google login
 router.get(
   "/auth/google/",
   passport.authenticate("google", {
@@ -31,6 +31,7 @@ router.get(
   })
 );
 
+// Google login callback
 router.get(
   "/auth/google/callback/",
   passport.authenticate("google", {

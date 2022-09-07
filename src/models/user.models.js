@@ -27,6 +27,10 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    is_google_account: {
+      type: Number,
+      default: 0
+    },
     role: {
       type: Number,
       default: 0

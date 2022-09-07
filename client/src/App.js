@@ -12,7 +12,7 @@ function App() {
 
 	const getUser = async () => {
 		try {
-			const url = `${process.env.REACT_APP_API_URL}/api/v1/protected`;
+			const url = `${process.env.REACT_APP_API_URL}/api/v1/authenticate`;
 			const { data } = await axios.get(url, { withCredentials: true });
 			setUser(data.user);
 		} catch (err) {

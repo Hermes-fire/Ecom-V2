@@ -13,7 +13,7 @@ const schema = Joi.object({
   email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: true } }),
 });
 
-exports.register = async (req, res) => {
+exports.register = async (req, res) => { /// no spaces in fielddds test password too
   try {
     const { username, email, password } = req.body;
     await schema.validateAsync({ username, email, password });
@@ -121,6 +121,7 @@ exports.googleAuth = (req, res) => {
 
 exports.authenticate = (req, res) => {
   if (req.user) {
+    //User.findById(req.user._id)
     return res.status(200).json({
       user: req.user,
     });
