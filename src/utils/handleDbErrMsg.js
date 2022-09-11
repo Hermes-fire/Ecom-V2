@@ -5,11 +5,11 @@ const handleDbErrMsg = (err) => {
 
     //Joi validation message
     if(err.details && err.details[0].path[0]=== "email")
-        return 'invalid email'
+        return 'Invalid email'
     if(err.details && err.details[0].path[0]=== "password")
-        return "password must contain at least 8 caracters,an uppercase,a special caracter"
+        return "Password must contain at least 8 caracters,an uppercase,a special caracter"
     if(err.details && err.details[0].path[0]=== "username")
-        return "username must contain at least 3 caracters"
+        return "Username must contain at least 3 caracters, alphanumeric characters, no spaces"
     return "Unhandled error message"
 }
 

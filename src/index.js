@@ -1,10 +1,9 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
-const env = require("./env-load");
+const env = require("./variables");
 const passport = require("passport");
 const JwtStrategy = require("passport-jwt").Strategy;
 const GoogleStrategy = require("passport-google-oauth").OAuth2Strategy;
@@ -15,6 +14,10 @@ const authRoutes = require("./routes/auth.routes");
 const router = require("./routes/auth.routes");
 const User = require("./models/user.models");
 const { v4: uuidv4 } = require("uuid");
+const xss = require("xss-clean");
+const mongoSanitize = require('express-mongo-sanitize')
+const compression = require('compression');
+const ApiError = require('./utils/ApiError');
 
 //Connect to mongoDb using mongoose
 mongoose
@@ -30,11 +33,15 @@ const app = express();
 // adding Helmet to enhance your Rest API's security
 app.use(helmet());
 
-// using bodyParser to parse JSON bodies into JS objects
-app.use(bodyParser.json());
+// Filter input from users to prevent XSS attacks
+app.use(xss());
+app.use(mongoSanitize())
 
 // Parse Cookie header and populate req.cookies
 app.use(cookieParser());
+
+// gzip compression
+app.use(compression());
 
 // enabling CORS for all requests
 app.use(cors({ credentials: true, origin: `${env.CLIENT_URI}` }));
@@ -47,6 +54,11 @@ app.use(passport.initialize());
 
 //Authentication route
 app.use("/api/v1/", authRoutes);
+
+// send back a 404 error for any unknown api request
+app.use((req, res, next) => {
+  next(new ApiError(httpStatus.NOT_FOUND, 'Not found'));
+});
 
 // starting the server
 app.listen(env.PORT, () => {
@@ -96,9 +108,12 @@ passport.use(
         return done(null, foundUser);
       } else {
         const newUser = new User({
-          username: profile._json.given_name + "-" + profile._json.family_name, /// remove space also frommusername
-          email: profile._json.email,
+          username: profile._json.given_name.toLowerCase() + profile._json.family_name.toLowerCase(),
+          fname: profile._json.given_name.toLowerCase(),
+          lname: profile._json.family_name.toLowerCase(),
+          email: profile._json.email.toLowerCase(),
           password: uuidv4() + "@A",
+          is_google_account: true,
         });
         newUser.save((err, savedUser) => {
           if (err)

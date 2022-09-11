@@ -1,4 +1,4 @@
-const env = require("../env-load");
+const env = require("../variables");
 const formatResponse = require("../utils/formatResponse");
 const handleDbErrMsg = require("../utils/handleDbErrMsg");
 const User = require("../models/user.models");
@@ -9,8 +9,8 @@ const schema = Joi.object({
   username: Joi.string().alphanum().min(3).max(30).required(),
   password: Joi.string().pattern(
     new RegExp("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$")
-  ),
-  email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: true } }),
+  ).required(),
+  email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: true } }).required(),
 });
 
 exports.register = async (req, res) => { /// no spaces in fielddds test password too
