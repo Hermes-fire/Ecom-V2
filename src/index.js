@@ -55,10 +55,6 @@ app.use(passport.initialize());
 //Authentication route
 app.use("/api/v1/", authRoutes);
 
-// send back a 404 error for any unknown api request
-app.use((req, res, next) => {
-  next(new ApiError(httpStatus.NOT_FOUND, 'Not found'));
-});
 
 // starting the server
 app.listen(env.PORT, () => {
