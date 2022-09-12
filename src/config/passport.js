@@ -1,11 +1,19 @@
-const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
+const JwtStrategy = require('passport-jwt').Strategy;
+// const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+
 const config = require('./config');
 const { tokenTypes } = require('./tokens');
 const { User } = require('../models');
 
+const cookieExtractor = (req) => {
+  let AccessToken = null;
+  if (req && req.cookies) AccessToken = req.cookies.jwtAccessToken; // what if no jwt key ? treat error first
+  return AccessToken;
+};
+
 const jwtOptions = {
   secretOrKey: config.jwt.secret,
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  jwtFromRequest: cookieExtractor,
 };
 
 const jwtVerify = async (payload, done) => {
