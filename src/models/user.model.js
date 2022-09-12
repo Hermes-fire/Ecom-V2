@@ -6,10 +6,13 @@ const { roles } = require('../config/roles');
 
 const userSchema = mongoose.Schema(
   {
-    name: {
+    fname: {
       type: String,
       required: true,
-      trim: true,
+    },
+    lname: {
+      type: String,
+      required: true,
     },
     email: {
       type: String,
@@ -39,6 +42,10 @@ const userSchema = mongoose.Schema(
       type: String,
       enum: roles,
       default: 'user',
+    },
+    isGoogleAccount: {
+      type: Boolean,
+      default: false,
     },
     isEmailVerified: {
       type: Boolean,

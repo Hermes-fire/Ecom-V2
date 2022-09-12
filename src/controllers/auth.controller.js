@@ -1,18 +1,42 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
+const config = require('../config/config');
 const { authService, userService, tokenService, emailService } = require('../services');
 
 const register = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
   const tokens = await tokenService.generateAuthTokens(user);
-  res.status(httpStatus.CREATED).send({ user, tokens });
+  res
+    .cookie('jwtAccessToken', tokens.access.token, {
+      maxAge: tokens.access.expires,
+      httpOnly: true,
+      secure: config.jwt.secureCookie === 'true',
+    })
+    .cookie('jwtRefreshToken', tokens.refresh.token, {
+      maxAge: tokens.refresh.expires,
+      httpOnly: true,
+      secure: config.jwt.secureCookie === 'true',
+    })
+    .status(httpStatus.CREATED)
+    .send({ user });
 });
 
 const login = catchAsync(async (req, res) => {
   const { email, password } = req.body;
   const user = await authService.loginUserWithEmailAndPassword(email, password);
   const tokens = await tokenService.generateAuthTokens(user);
-  res.send({ user, tokens });
+  res
+    .cookie('jwtAccessToken', tokens.access.token, {
+      maxAge: tokens.access.expires,
+      httpOnly: true,
+      secure: config.jwt.secureCookie === 'true',
+    })
+    .cookie('jwtRefreshToken', tokens.refresh.token, {
+      maxAge: tokens.refresh.expires,
+      httpOnly: true,
+      secure: config.jwt.secureCookie === 'true',
+    })
+    .send({ user });
 });
 
 const logout = catchAsync(async (req, res) => {
