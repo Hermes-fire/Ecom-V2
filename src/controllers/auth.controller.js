@@ -59,6 +59,7 @@ const refreshTokens = catchAsync(async (req, res) => {
       httpOnly: true,
       secure: config.jwt.secureCookie === 'true',
     })
+    .status(httpStatus.NO_CONTENT)
     .send();
 });
 
