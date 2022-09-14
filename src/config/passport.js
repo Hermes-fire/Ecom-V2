@@ -6,9 +6,7 @@ const { tokenTypes } = require('./tokens');
 const { User } = require('../models');
 
 const cookieExtractor = (req) => {
-  let AccessToken = null;
-  if (req && req.cookies) AccessToken = req.cookies.jwtAccessToken; // what if no jwt key ? treat error first
-  return AccessToken;
+  return req.cookies && req.cookies.jwtAccessToken ? req.cookies.jwtAccessToken : undefined;
 };
 
 const jwtOptions = {
@@ -35,4 +33,5 @@ const jwtStrategy = new JwtStrategy(jwtOptions, jwtVerify);
 
 module.exports = {
   jwtStrategy,
+  cookieExtractor,
 };
