@@ -56,7 +56,6 @@ If you did not create an account, then ignore this email.`;
 };
 
 module.exports = {
-  transport,
   sendEmail,
   sendResetPasswordEmail,
   sendVerificationEmail,
